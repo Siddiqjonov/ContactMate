@@ -1,0 +1,6 @@
+@ContactMate.Api_HostAddress = http://localhost:5077
+
+GET {{ContactMate.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
