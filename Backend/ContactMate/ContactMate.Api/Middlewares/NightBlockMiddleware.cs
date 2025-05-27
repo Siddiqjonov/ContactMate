@@ -13,7 +13,7 @@ public class NightBlockMiddleware
     {
         var currentHour = DateTime.Now.Hour;
 
-        if (currentHour >= 9 || currentHour >= 18)
+        if (currentHour <= 9 || currentHour >= 18)
         {
             context.Response.StatusCode = 403;
             await context.Response.WriteAsJsonAsync(new
