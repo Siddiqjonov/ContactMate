@@ -19,9 +19,10 @@ namespace ContactMate.Api
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddMemoryCache();
-            builder.Services.AddResponseCaching();
+            //builder.Services.AddMemoryCache();
+            //builder.Services.AddResponseCaching();
 
+            // CORS configuration (already present)
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", policy =>
@@ -49,7 +50,7 @@ namespace ContactMate.Api
             app.UseAuthentication();
             app.UseAuthorization();
 
-            
+            // Apply CORS policy
             app.UseCors("AllowAll");
 
             app.MapControllers();

@@ -6,4 +6,5 @@ public interface IUserService
 {
     Task DeleteUserByRoleAsync(long userId, string userRoleName);
     Task UpdateUserRoleAsync(long userId, long userRoleId, string userRoleName);
+    Task<UserGetDto> GetUserByUserIdAsync(long userId);
 }

@@ -35,6 +35,7 @@ public class GlobalExceptionMiddleware
                 NotFoundException or DirectoryNotFoundException or EntityNotFoundException => 404,
                 AuthException or UnauthorizedException => 401,
                 NotAllowedException => 403,
+                DuplicateEntryException => 409,
                 ValidationFailedException => 400,
                 _ => (int)HttpStatusCode.InternalServerError
             };

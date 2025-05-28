@@ -1,4 +1,5 @@
-﻿using ContactMate.Core.Errors;
+﻿using ContactMate.Bll.Dtos;
+using ContactMate.Core.Errors;
 using ContactMate.Dal;
 using ContactMate.Dal.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +45,23 @@ public class UserService : IUserService
         await (userRoleName == "SuperAdmin"
             ? PatchUserRoleAsync(userId, userRoleId)
             : throw new NotAllowedException("Updating is not allowed for Users or Admin"));
+    }
+
+    public async Task<UserGetDto> GetUserByUserIdAsync(long userId)
+    {
+        var user = await SelectUserByIdAsync(userId);
+        var userGetDto = new UserGetDto()
+        {
+            UserId = user.UserId,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            UserName = user.UserName,
+            PhoneNumber = user.PhoneNumber,
+            Email = user.Email,
+            Role = user.UserName,
+        };
+
+        return userGetDto;
     }
 
     // -----------------------------------------

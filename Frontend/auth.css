@@ -1,0 +1,313 @@
+/* Theme Variables */
+:root {
+  --bg-primary: #f7fafc;
+  --bg-secondary: #ffffff;
+  --bg-input: #f9fafb;
+  --text-primary: #1a202c;
+  --text-secondary: #718096;
+  --border: #e2e8f0;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --error: #f56565;
+  --success: #48bb78;
+  --logout: #e53e3e;
+  --logout-hover: #c53030;
+  --btn-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --avatar-bg: #a0aec0;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #1a202c;
+  --bg-secondary: #2d3748;
+  --bg-input: #4a5568;
+  --text-primary: #f7fafc;
+  --text-secondary: #a0aec0;
+  --border: #4a5568;
+  --accent: #63b3ed;
+  --accent-hover: #4299e1;
+  --avatar-bg: #718096;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 100%;
+  padding: 0 16px;
+}
+
+input, button {
+  transition: all 0.2s ease;
+}
+
+input {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+input:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn-primary {
+  background: linear-gradient(to right, var(--accent), var(--accent-hover));
+  color: white;
+  box-shadow: var(--btn-shadow);
+}
+
+.btn-primary:hover {
+  transform: scale(1.03);
+}
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-primary);
+  transform: scale(1.03);
+}
+
+.btn-logout {
+  background: linear-gradient(to right, var(--logout), var(--logout-hover));
+  color: white;
+  box-shadow: var(--btn-shadow);
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.btn-logout:hover {
+  transform: scale(1.03);
+}
+
+.btn-edit, .btn-delete {
+  background: linear-gradient(to right, var(--accent), var(--accent-hover));
+  color: white;
+  box-shadow: var(--btn-shadow);
+  justify-content: center;
+  padding: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.btn-delete {
+  background: linear-gradient(to right, var(--logout), var(--logout-hover));
+}
+
+.btn-edit:hover, .btn-delete:hover {
+  transform: scale(1.03);
+}
+
+.btn-settings {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: none;
+  padding: 12px;
+  justify-content: flex-start;
+}
+
+.btn-settings:hover {
+  background: var(--bg-primary);
+  transform: scale(1.01);
+}
+
+.hidden {
+  display: none;
+}
+
+/* Settings Div */
+#settings-div {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.95);
+  background: var(--bg-secondary);
+}
+
+#settings-div:not(.hidden) {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Transitions */
+#auth-section, #contacts-section {
+  transition: opacity 0.3s ease;
+}
+
+#auth-section.hidden, #contacts-section.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Modal */
+#contact-modal {
+  transition: opacity 0.3s ease;
+}
+
+#contact-modal.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#contact-modal > div {
+  transform: scale(0.95);
+  transition: transform 0.4s ease;
+  background: var(--bg-secondary);
+}
+
+#contact-modal:not(.hidden) > div {
+  transform: scale(1);
+}
+
+/* Contact Card */
+.contact-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.contact-header {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  background: var(--avatar-bg);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  margin-right: 12px;
+}
+
+.contact-details {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 1s ease-in-out, opacity 1s ease-in-out;
+  opacity: 0;
+}
+
+.contact-details:not(.hidden) {
+  max-height: 500px;
+  opacity: 1;
+}
+
+.contact-details table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.contact-details th, .contact-details td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.contact-details th {
+  font-weight: 500;
+  color: var(--text-secondary);
+  width: 30%;
+}
+
+.contact-details td {
+  color: var(--text-primary);
+}
+
+/* Skeleton UI */
+.skeleton .contact-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+}
+
+/* Toast */
+.toast {
+  background: #2d3748;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: slideIn 0.3s ease;
+}
+
+.toast.success {
+  background: var(--success);
+}
+
+.toast.error {
+  background: var(--error);
+}
+
+.toast button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Spinner */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Scrollable Contacts */
+#contacts-list {
+  max-height: 60vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+#contacts-list::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  h1 { font-size: 1.5rem; }
+  .px-4 { padding: 0 1rem; }
+  .contact-card { font-size: 0.875rem; }
+  .toast { width: 90%; }
+  #contact-modal > div, #settings-div { width: 90vw; }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .contact-card { padding: 16px; }
+  #contacts-list { max-width: 90%; margin: 0 auto; }
+}

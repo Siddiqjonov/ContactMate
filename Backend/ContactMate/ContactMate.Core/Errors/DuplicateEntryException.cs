@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 namespace ContactMate.Core.Errors;
 
 [Serializable]
-public class DuplicateEntryException : NotAllowedException
+public class DuplicateEntryException : BaseException // NotAllowedException
 {
     public DuplicateEntryException() { }
     public DuplicateEntryException(String message) : base(message) { }

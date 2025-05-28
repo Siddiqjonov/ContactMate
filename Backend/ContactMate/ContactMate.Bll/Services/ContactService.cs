@@ -60,7 +60,7 @@ public class ContactService : IContactService
     {
         var contacts = await SelectAllUserContactsAsync(userId);
 
-        var contactsDto = contacts.Select(contact => ConvertToContactDto(contact));
+        var contactsDto = contacts.Select(contact => ConvertToContactGetDto(contact));
         return contactsDto.ToList();
     }
 
@@ -71,6 +71,19 @@ public class ContactService : IContactService
             ContactId = contact.Id,
             FirstName = contact.FirstName,
             LastName = contact.LastName,
+            Email = contact.Email,
+            PhoneNumber = contact.PhoneNumber,
+            Address = contact.Address,
+        };
+    }
+    private ContactDto ConvertToContactGetDto(Contact contact)
+    {
+        return new ContactDto()
+        {
+            ContactId = contact.Id,
+            FirstName = contact.FirstName,
+            LastName = contact.LastName,
+            FullName = contact.FullName,
             Email = contact.Email,
             PhoneNumber = contact.PhoneNumber,
             Address = contact.Address,
@@ -106,6 +119,10 @@ public class ContactService : IContactService
             .FirstOrDefaultAsync(c => c.Id == contactDto.ContactId && c.UserId == userId);
         if (contactOfUser is null)
             throw new NotAllowedException($"Contact with contactId: {contactDto.ContactId} does not belong to user with userId: {userId}");
+        //else if(await SelectAllContacts().Include(c => c.User).SingleOrDefaultAsync(c => c.UserId == userId && c.PhoneNumber != contactDto.PhoneNumber) is not null)
+        //{
+        //    throw new DuplicateEntryException($"Contact with phone number: {contactDto.PhoneNumber} already exsixts");
+        //}
         else
         {
             contactOfUser.FirstName = contactDto.FirstName;
@@ -143,7 +160,7 @@ public class ContactService : IContactService
 
     private async Task<ICollection<Contact>> SelectAllUserContactsAsync(long userId)
     {
-        var contacts = await MainContext.Contacts.Where(c => c.UserId == userId).ToListAsync();
+        var contacts = await MainContext.Contacts.Include(c => c.User).Where(c => c.UserId == userId).ToListAsync();
         return contacts;
     }
 

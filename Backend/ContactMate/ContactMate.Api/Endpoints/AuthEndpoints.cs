@@ -1,5 +1,6 @@
 ﻿using ContactMate.Bll.Dtos;
 using ContactMate.Bll.Services;
+using ContactMate.Core.Errors;
 using Microsoft.AspNetCore.Authorization;
 
 namespace ContactMate.Api.Endpoints;
@@ -23,7 +24,18 @@ public static class AuthEndpoints
         userGroup.MapDelete("/LogOut", LogOut)
             .WithName("LogOut");
 
+        userGroup.MapGet("/getUser", GetUser)
+            .WithName("GetUser");
+
         //.RequireAuthorization(new AuthorizeAttribute { Roles = "Admin,SuperAdmin" })
+    }
+
+    public static async Task<IResult> GetUser(HttpContext context, IUserService userService)
+    {
+        var userId = context.User.FindFirst("UserId")?.Value;
+        if (userId is null)
+            throw new ForbiddenException("Access forbidden");
+        return Results.Ok(await userService.GetUserByUserIdAsync(long.Parse(userId)));
     }
 
     public static async Task<IResult> SignUp(UserCreateDto user, IAuthService _service)

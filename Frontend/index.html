@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ContactSync</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body class="bg-primary min-h-screen flex items-center justify-center">
+  <div class="container mx-auto px-4 relative">
+    <!-- Loading Spinner -->
+    <div id="spinner" class="hidden fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+      <div class="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50"></div>
+
+    <!-- Auth Section -->
+    <div id="auth-section" class="max-w-md mx-auto bg-secondary rounded-2xl shadow-xl p-6">
+      <h1 class="text-3xl font-bold text-center text-textPrimary mb-6">ContactSync</h1>
+
+      <!-- Sign-Up Form -->
+      <form id="signup-form" class="space-y-4 hidden">
+        <div>
+          <label for="firstName" class="block text-sm font-medium text-textSecondary">First Name</label>
+          <input type="text" id="firstName" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary focus:outline-none focus:ring-2 focus:ring-accent" required>
+        </div>
+        <div>
+          <label for="lastName" class="block text-sm font-medium text-textSecondary">Last Name</label>
+          <input type="text" id="lastName" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary">
+        </div>
+        <div>
+          <label for="userName" class="block text-sm font-medium text-textSecondary">Username</label>
+          <input type="text" id="userName" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary" required>
+        </div>
+        <div>
+          <label for="email" class="block text-sm font-medium text-textSecondary">Email</label>
+          <input type="email" id="email" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary" required>
+        </div>
+        <div>
+          <label for="password" class="block text-sm font-medium text-textSecondary">Password</label>
+          <input type="password" id="password" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary" required>
+        </div>
+        <div>
+          <label for="phoneNumber" class="block text-sm font-medium text-textSecondary">Phone Number</label>
+          <input type="tel" id="phoneNumber" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary" placeholder="+998901234567" required>
+        </div>
+        <button type="submit" class="w-full btn btn-primary">Sign Up</button>
+        <p class="text-center text-sm text-textSecondary mt-4">Already have an account? <a href="#" id="show-signin" class="text-accent hover:underline">Sign In</a></p>
+      </form>
+
+      <!-- Sign-In Form -->
+      <form id="signin-form" class="space-y-4">
+        <div>
+          <label for="signin-userName" class="block text-sm font-medium text-textSecondary">Username</label>
+          <input type="text" id="signin-userName" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary" required>
+        </div>
+        <div>
+          <label for="signin-password" class="block text-sm font-medium text-textSecondary">Password</label>
+          <input type="password" id="signin-password" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary" required>
+        </div>
+        <button type="submit" class="w-full btn btn-primary">Sign In</button>
+        <p class="text-center text-sm text-textSecondary mt-4">Don't have an account? <a href="#" id="show-signup" class="text-accent hover:underline">Sign Up</a></p>
+      </form>
+    </div>
+
+    <!-- Contacts Section -->
+    <div id="contacts-section" class="max-w-md mx-auto bg-secondary rounded-2xl shadow-xl p-6 hidden">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center">
+          <button id="settings-btn" class="mr-2 text-textPrimary hover:text-accent" title="Settings"><i class="fas fa-cog"></i></button>
+          <h1 class="text-2xl font-bold text-textPrimary">My Contacts</h1>
+        </div>
+        <button id="export-btn" class="text-textPrimary hover:text-accent" title="Export Contacts"><i class="fas fa-download"></i></button>
+      </div>
+
+      <!-- Settings Div -->
+      <div id="settings-div" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-md w-full bg-secondary rounded-2xl shadow-xl p-6 z-50">
+        <div class="space-y-2">
+          <button id="profile-btn" class="w-full btn btn-settings text-left">View Profile <i class="fas fa-user ml-2"></i></button>
+          <button id="theme-toggle" class="w-full btn btn-settings text-left">Toggle Theme <i class="fas fa-moon ml-2"></i></button>
+          <button id="add-contact" class="w-full btn btn-settings text-left">Add Contact <i class="fas fa-plus ml-2"></i></button>
+          <button id="logout" class="w-full btn btn-logout text-left">Logout <i class="fas fa-sign-out-alt ml-2"></i></button>
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="mb-4">
+        <input type="text" id="search-contacts" class="w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary focus:outline-none focus:ring-2 focus:ring-accent" placeholder="Search contacts...">
+      </div>
+
+      <!-- Contacts List -->
+      <div id="contacts-list" class="space-y-2 mb-4">
+        <!-- Skeleton UI -->
+        <div class="skeleton hidden">
+          <div class="contact-card animate-pulse">
+            <div class="contact-header">
+              <div class="avatar bg-gray-300"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-4 bg-gray-300 rounded w-3/4"></div>
+                <div class="h-3 bg-gray-300 rounded w-1/2"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="hidden text-center text-textSecondary">
+        <i class="fas fa-users text-4xl text-gray-400"></i>
+        <p class="mt-2">No contacts yet. Add one!</p>
+      </div>
+
+      <!-- Contact Modal -->
+      <div id="contact-modal" class="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-secondary rounded-2xl p-6 w-full max-w-md shadow-xl">
+          <h2 id="modal-title" class="text-xl font-bold text-textPrimary mb-4">Add Contact</h2>
+          <form id="contact-form" class="space-y-4">
+            <input type="hidden" id="contactId" value="0">
+            <div>
+              <label for="contact-firstName" class="block text-sm font-medium text-textSecondary">First Name</label>
+              <input type="text" id="contact-firstName" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary" required>
+            </div>
+            <div>
+              <label for="contact-lastName" class="block text-sm font-medium text-textSecondary">Last Name</label>
+              <input type="text" id="contact-lastName" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary">
+            </div>
+            <div>
+              <label for="contact-email" class="block text-sm font-medium text-textSecondary">Email</label>
+              <input type="email" id="contact-email" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary">
+            </div>
+            <div>
+              <label for="contact-phoneNumber" class="block text-sm font-medium text-textSecondary">Phone</label>
+              <input type="tel" id="contact-phoneNumber" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary" placeholder="+998901234567">
+            </div>
+            <div>
+              <label for="contact-address" class="block text-sm font-medium text-textSecondary">Address</label>
+              <input type="text" id="contact-address" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary">
+            </div>
+            <div class="flex space-x-2">
+              <button type="submit" id="contact-submit" class="btn btn-primary w-full">Save</button>
+              <button type="button" id="contact-cancel" class="btn btn-secondary w-full">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://unpkg.com/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>
