@@ -83,6 +83,7 @@
           <button id="profile-btn" class="w-full btn btn-settings text-left">View Profile <i class="fas fa-user ml-2"></i></button>
           <button id="theme-toggle" class="w-full btn btn-settings text-left">Toggle Theme <i class="fas fa-moon ml-2"></i></button>
           <button id="add-contact" class="w-full btn btn-settings text-left">Add Contact <i class="fas fa-plus ml-2"></i></button>
+          <button id="admin-panel-btn" class="w-full btn btn-settings text-left hidden">Admin Panel <i class="fas fa-shield-alt ml-2"></i></button>
           <button id="logout" class="w-full btn btn-logout text-left">Logout <i class="fas fa-sign-out-alt ml-2"></i></button>
         </div>
       </div>
@@ -143,6 +144,84 @@
             <div class="flex space-x-2">
               <button type="submit" id="contact-submit" class="btn btn-primary w-full">Save</button>
               <button type="button" id="contact-cancel" class="btn btn-secondary w-full">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Section -->
+    <div id="admin-section" class="max-w-md mx-auto bg-secondary rounded-2xl shadow-xl p-6 hidden">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center">
+          <button id="back-to-contacts" class="mr-2 text-textPrimary hover:text-accent" title="Back to Contacts"><i class="fas fa-arrow-left"></i></button>
+          <h1 class="text-2xl font-bold text-textPrimary">Admin Panel</h1>
+        </div>
+      </div>
+
+      <!-- Users Section -->
+      <div class="mb-6">
+        <h2 class="text-xl font-semibold text-textPrimary mb-2">Manage Users</h2>
+        <input type="text" id="search-users" class="w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary focus:outline-none focus:ring-2 focus:ring-accent mb-4" placeholder="Search users by role...">
+        <div id="users-list" class="space-y-2 max-h-60 overflow-y-auto">
+          <!-- Skeleton UI -->
+          <div class="skeleton hidden">
+            <div class="contact-card animate-pulse">
+              <div class="contact-header">
+                <div class="avatar bg-gray-300"></div>
+                <div class="flex-1 space-y-2">
+                  <div class="h-4 bg-gray-300 rounded w-3/4"></div>
+                  <div class="h-3 bg-gray-300 rounded w-1/2"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="users-empty-state" class="hidden text-center text-textSecondary">
+          <i class="fas fa-users text-4xl text-gray-400"></i>
+          <p class="mt-2">No users found.</p>
+        </div>
+      </div>
+
+      <!-- Roles Section -->
+      <div>
+        <h2 class="text-xl font-semibold text-textPrimary mb-2">Manage Roles</h2>
+        <button id="add-role-btn" class="w-full btn btn-primary mb-4">Add Role</button>
+        <div id="roles-list" class="space-y-2 max-h-60 overflow-y-auto">
+          <!-- Skeleton UI -->
+          <div class="skeleton hidden">
+            <div class="contact-card animate-pulse">
+              <div class="contact-header">
+                <div class="flex-1 space-y-2">
+                  <div class="h-4 bg-gray-300 rounded w-3/4"></div>
+                  <div class="h-3 bg-gray-300 rounded w-1/2"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="roles-empty-state" class="hidden text-center text-textSecondary">
+          <i class="fas fa-shield-alt text-4xl text-gray-400"></i>
+          <p class="mt-2">No roles found.</p>
+        </div>
+      </div>
+
+      <!-- Role Modal -->
+      <div id="role-modal" class="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-secondary rounded-2xl p-6 w-full max-w-md shadow-xl">
+          <h2 id="role-modal-title" class="text-xl font-bold text-textPrimary mb-4">Add Role</h2>
+          <form id="role-form" class="space-y-4">
+            <div>
+              <label for="role-name" class="block text-sm font-medium text-textSecondary">Role Name</label>
+              <input type="text" id="role-name" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary" required>
+            </div>
+            <div>
+              <label for="role-description" class="block text-sm font-medium text-textSecondary">Description</label>
+              <input type="text" id="role-description" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary">
+            </div>
+            <div class="flex space-x-2">
+              <button type="submit" id="role-submit" class="btn btn-primary w-full">Save</button>
+              <button type="button" id="role-cancel" class="btn btn-secondary w-full">Cancel</button>
             </div>
           </form>
         </div>
