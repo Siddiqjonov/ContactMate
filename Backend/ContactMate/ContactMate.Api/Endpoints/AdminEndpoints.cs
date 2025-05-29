@@ -18,7 +18,7 @@ public static class AdminEndpoints
             .WithTags("Admin endpoints");
 
         userGroup.MapGet("/getUsersByRole",
-            [Authorize(Roles = "Admin, SuperAdmin")]
+            [Authorize(Roles = "Admin, SuperAdmin, Super Admin")]
         async (string role, IUserRoleService _userRoleService) =>
             {
                 var users = await _userRoleService.GetAllUsersByRoleNameAsync(role);
