@@ -159,10 +159,19 @@
         </div>
       </div>
 
-      <!-- Users Section -->
-      <div class="mb-6">
+      <!-- Section Navigation -->
+      <div class="flex space-x-4 mb-4">
+        <button id="manage-users-btn" class="btn btn-primary btn-active">Manage Users</button>
+        <button id="manage-roles-btn" class="btn btn-primary">Manage User Roles</button>
+      </div>
+
+      <!-- Manage Users Section -->
+      <div id="manage-users-section">
         <h2 class="text-xl font-semibold text-textPrimary mb-2">Manage Users</h2>
-        <input type="text" id="search-users" class="w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary focus:outline-none focus:ring-2 focus:ring-accent mb-4" placeholder="Search users by role...">
+        <div class="flex items-center mb-4">
+          <input type="text" id="search-users" value="User" class="w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary focus:outline-none focus:ring-2 focus:ring-accent mr-2" placeholder="Search users by role...">
+          <button id="search-users-btn" class="btn btn-primary"><i class="fas fa-search"></i></button>
+        </div>
         <div id="users-list" class="space-y-2 max-h-60 overflow-y-auto">
           <!-- Skeleton UI -->
           <div class="skeleton hidden">
@@ -183,10 +192,12 @@
         </div>
       </div>
 
-      <!-- Roles Section -->
-      <div>
-        <h2 class="text-xl font-semibold text-textPrimary mb-2">Manage Roles</h2>
-        <button id="add-role-btn" class="w-full btn btn-primary mb-4">Add Role</button>
+      <!-- Manage Roles Section -->
+      <div id="manage-roles-section" class="hidden">
+        <h2 class="text-xl font-semibold text-textPrimary mb-2">Manage User Roles</h2>
+        <div id="add-role-container" class="hidden mb-4">
+          <button id="add-role-btn" class="w-full btn btn-primary">Add Role</button>
+        </div>
         <div id="roles-list" class="space-y-2 max-h-60 overflow-y-auto">
           <!-- Skeleton UI -->
           <div class="skeleton hidden">
@@ -211,6 +222,7 @@
         <div class="bg-secondary rounded-2xl p-6 w-full max-w-md shadow-xl">
           <h2 id="role-modal-title" class="text-xl font-bold text-textPrimary mb-4">Add Role</h2>
           <form id="role-form" class="space-y-4">
+            <input type="hidden" id="role-id" value="0">
             <div>
               <label for="role-name" class="block text-sm font-medium text-textSecondary">Role Name</label>
               <input type="text" id="role-name" class="mt-1 block w-full p-2 border border-border rounded-lg bg-inputBg text-textPrimary" required>

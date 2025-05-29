@@ -22,6 +22,19 @@ public class UserRoleService : IUserRoleService
         var userRoleDto = userRoels.Select(userRole => ConverUserRoleToUserRoleDto(userRole)).ToList();
         return userRoleDto;
     }
+    public async Task UpdateUserRoleAsync(UserRoleDto userRoleDto)
+    {
+        var userRole = await MainContext.UserRoles.FirstOrDefaultAsync(ur => ur.UserRoleId == userRoleDto.UserRoleId);
+        if (userRole is null) throw new NotFoundException($"User role with roleId: {userRoleDto.UserRoleId} not found");
+        else
+        {
+            userRole.UserRoleName = userRoleDto.UserRoleName;
+            userRole.Description = userRoleDto.Description;
+
+            MainContext.UserRoles.Update(userRole);
+            await MainContext.SaveChangesAsync();
+        }
+    }
 
     public async Task<ICollection<UserGetDto>> GetAllUsersByRoleNameAsync(string roleName)
     {
@@ -79,7 +92,7 @@ public class UserRoleService : IUserRoleService
         var userRole = await SelectUserRoleByIdAsync(userRoleId);
         await DeleteUserRoleAsync(userRole);
     }
-    
+
     //--------------------------------------------------
 
 

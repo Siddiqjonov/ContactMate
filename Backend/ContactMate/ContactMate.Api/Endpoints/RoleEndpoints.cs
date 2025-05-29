@@ -2,8 +2,6 @@
 using ContactMate.Bll.Services;
 using ContactMate.Core.Errors;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Data;
 using System.Security.Claims;
 
 namespace ContactMate.Api.Endpoints;
@@ -50,5 +48,26 @@ public static class RoleEndpoints
             return Results.Ok();
         })
             .WithName("DeleteUserRoleById");
+
+        userGroup.MapPatch("/update", [Authorize(Roles = "SuperAdmin")] 
+        async ( IUserRoleService _userRoleService, UserRoleDto userRoleDto) =>
+        {
+            if (userRoleDto == null)
+            {
+                return Results.BadRequest("User role data is required.");
+            }
+
+            try
+            {
+                await _userRoleService.UpdateUserRoleAsync(userRoleDto);
+                return Results.Ok("User role updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                // Optionally, log the exception here
+                return Results.Problem($"An error occurred: {ex.Message}");
+            }
+        })
+            .WithName("ChangeUserRole");
     }
 }

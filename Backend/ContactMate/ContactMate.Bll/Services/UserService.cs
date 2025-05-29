@@ -15,7 +15,7 @@ public class UserService : IUserService
         MainContext = mainContext;
     }
 
-    public async Task DeleteUserByRoleAsync(long userId, string userRoleName)
+    public async Task DeleteUserByUserIdAsync(long userId, string userRoleName)
     {
         if (userRoleName == "SuperAdmin")
         {
@@ -58,7 +58,7 @@ public class UserService : IUserService
             UserName = user.UserName,
             PhoneNumber = user.PhoneNumber,
             Email = user.Email,
-            Role = user.UserName,
+            Role = user.UserRole.UserRoleName,
         };
 
         return userGetDto;

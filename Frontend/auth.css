@@ -41,17 +41,29 @@ body {
   padding: 0 16px;
 }
 
-input, button {
+input, button, select {
   transition: all 0.2s ease;
 }
 
-input {
+input, select {
   background: var(--bg-input);
   color: var(--text-primary);
 }
 
-input:focus {
+input:focus, select:focus {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  outline: none;
+}
+
+.input-error {
+  border-color: var(--error) !important;
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
 }
 
 .btn {
@@ -61,17 +73,25 @@ input:focus {
   text-align: center;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .btn-primary {
   background: linear-gradient(to right, var(--accent), var(--accent-hover));
   color: white;
   box-shadow: var(--btn-shadow);
+  padding: 12px 20px;
 }
 
 .btn-primary:hover {
   transform: scale(1.03);
+}
+
+.btn-primary.btn-active {
+  background: var(--accent);
+  transform: scale(1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .btn-secondary {
@@ -129,6 +149,31 @@ input:focus {
   transform: scale(1.01);
 }
 
+.change-role {
+  background: linear-gradient(to right, var(--accent), var(--accent-hover));
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.change-role:hover {
+  transform: scale(1.03);
+}
+
+.change-role:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.change-role:disabled {
+  background: var(--border);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  transform: none;
+}
+
 .hidden {
   display: none;
 }
@@ -147,37 +192,37 @@ input:focus {
 }
 
 /* Transitions */
-#auth-section, #contacts-section {
+#auth-section, #contacts-section, #admin-section {
   transition: opacity 0.3s ease;
 }
 
-#auth-section.hidden, #contacts-section.hidden {
+#auth-section.hidden, #contacts-section.hidden, #admin-section.hidden {
   opacity: 0;
   pointer-events: none;
 }
 
 /* Modal */
-#contact-modal {
+#contact-modal, #role-modal {
   transition: opacity 0.3s ease;
 }
 
-#contact-modal.hidden {
+#contact-modal.hidden, #role-modal.hidden {
   opacity: 0;
   pointer-events: none;
 }
 
-#contact-modal > div {
+#contact-modal > div, #role-modal > div {
   transform: scale(0.95);
   transition: transform 0.4s ease;
   background: var(--bg-secondary);
 }
 
-#contact-modal:not(.hidden) > div {
+#contact-modal:not(.hidden) > div, #role-modal:not(.hidden) > div {
   transform: scale(1);
 }
 
 /* Contact Card */
-.contact-card {
+.contact-card, .user-card, .role-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -185,7 +230,7 @@ input:focus {
   cursor: pointer;
 }
 
-.contact-header {
+.contact-header, .user-header, .role-header {
   display: flex;
   align-items: center;
 }
@@ -203,36 +248,37 @@ input:focus {
   margin-right: 12px;
 }
 
-.contact-details {
+.contact-details, .user-details, .role-details {
   max-height: 0;
   overflow: hidden;
   transition: max-height 1s ease-in-out, opacity 1s ease-in-out;
   opacity: 0;
 }
 
-.contact-details:not(.hidden) {
+.contact-details:not(.hidden), .user-details:not(.hidden), .role-details:not(.hidden) {
   max-height: 500px;
   opacity: 1;
 }
 
-.contact-details table {
+.contact-details table, .user-details table, .role-details table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.contact-details th, .contact-details td {
+.contact-details th, .user-details th, .role-details th,
+.contact-details td, .user-details td, .role-details td {
   padding: 8px;
   text-align: left;
   border-bottom: 1px solid var(--border);
 }
 
-.contact-details th {
+.contact-details th, .user-details th, .role-details th {
   font-weight: 500;
   color: var(--text-secondary);
   width: 30%;
 }
 
-.contact-details td {
+.contact-details td, .user-details td, .role-details td {
   color: var(--text-primary);
 }
 
@@ -285,8 +331,8 @@ input:focus {
   to { transform: rotate(360deg); }
 }
 
-/* Scrollable Contacts */
-#contacts-list {
+/* Scrollable Lists */
+#contacts-list, #users-list, #roles-list {
   max-height: 60vh;
   overflow-y: auto;
   scroll-behavior: smooth;
@@ -294,7 +340,7 @@ input:focus {
   scrollbar-width: none;  /* Firefox */
 }
 
-#contacts-list::-webkit-scrollbar {
+#contacts-list::-webkit-scrollbar, #users-list::-webkit-scrollbar, #roles-list::-webkit-scrollbar {
   display: none;  /* Chrome, Safari, Opera */
 }
 
@@ -302,12 +348,13 @@ input:focus {
 @media (max-width: 640px) {
   h1 { font-size: 1.5rem; }
   .px-4 { padding: 0 1rem; }
-  .contact-card { font-size: 0.875rem; }
+  .contact-card, .user-card, .role-card { font-size: 0.875rem; }
   .toast { width: 90%; }
-  #contact-modal > div, #settings-div { width: 90vw; }
+  #contact-modal > div, #role-modal > div, #settings-div { width: 90vw; }
+  .btn-primary { padding: 10px 16px; }
 }
 
 @media (min-width: 641px) and (max-width: 1024px) {
-  .contact-card { padding: 16px; }
-  #contacts-list { max-width: 90%; margin: 0 auto; }
+  .contact-card, .user-card, .role-card { padding: 16px; }
+  #contacts-list, #users-list, #roles-list { max-width: 90%; margin: 0 auto; }
 }

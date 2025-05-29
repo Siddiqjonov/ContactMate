@@ -30,7 +30,7 @@ public static class AdminEndpoints
         async (long userId, HttpContext httpContext, IUserService userService) =>
         {
             var userRoleName = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
-            await userService.DeleteUserByRoleAsync(userId, userRoleName);
+            await userService.DeleteUserByUserIdAsync(userId, userRoleName);
             return Results.Ok();
         })
         .WithName("DeleteUserByRole");

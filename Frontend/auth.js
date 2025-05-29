@@ -28,9 +28,11 @@ const spinner = document.getElementById('spinner');
 const toastContainer = document.getElementById('toast-container');
 const backToContacts = document.getElementById('back-to-contacts');
 const searchUsers = document.getElementById('search-users');
+const searchUsersBtn = document.getElementById('search-users-btn');
 const usersList = document.getElementById('users-list');
 const usersEmptyState = document.getElementById('users-empty-state');
 const addRoleBtn = document.getElementById('add-role-btn');
+const addRoleContainer = document.getElementById('add-role-container');
 const rolesList = document.getElementById('roles-list');
 const rolesEmptyState = document.getElementById('roles-empty-state');
 const roleModal = document.getElementById('role-modal');
@@ -38,6 +40,10 @@ const roleForm = document.getElementById('role-form');
 const roleSubmit = document.getElementById('role-submit');
 const roleCancel = document.getElementById('role-cancel');
 const roleModalTitle = document.getElementById('role-modal-title');
+const manageUsersSection = document.getElementById('manage-users-section');
+const manageRolesSection = document.getElementById('manage-roles-section');
+const manageUsersBtn = document.getElementById('manage-users-btn');
+const manageRolesBtn = document.getElementById('manage-roles-btn');
 
 let contacts = [];
 let users = [];
@@ -48,6 +54,16 @@ let deletedRole = null;
 let favorites = new Set();
 let currentUser = null;
 
+// Valid roles for validation
+const VALID_ROLES = ['User', 'Admin', 'SuperAdmin'];
+
+// Input sanitization function
+function sanitizeInput(input) {
+  const div = document.createElement('div');
+  div.textContent = input;
+  return div.innerHTML;
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
   const savedTheme = localStorage.getItem('theme') || 'light';
@@ -57,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchCurrentUser();
     showContacts();
     fetchContacts();
-    if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'super admin')) {
+    if (currentUser && (currentUser.role === 'Admin' || currentUser.role === 'SuperAdmin')) {
       adminPanelBtn.classList.remove('hidden');
     }
   }
@@ -69,9 +85,14 @@ async function fetchCurrentUser() {
     const res = await makeAuthenticatedRequest(`${AUTH_API_URL}/getUser`);
     if (res && res.ok) {
       currentUser = await res.json();
+      if (currentUser && currentUser.role) {
+        currentUser.role = currentUser.role; // Keep exact casing
+      }
+    } else {
+      showToast('Failed to fetch user data.', 'error');
     }
   } catch (err) {
-    console.error('Failed to fetch current user:', err.message);
+    showToast('Cannot connect to server.', 'error');
   }
 }
 
@@ -80,7 +101,7 @@ settingsBtn.onclick = () => {
   settingsDiv.classList.toggle('hidden');
 };
 
-// Close settings
+// Close settings on click outside
 document.addEventListener('click', (e) => {
   if (!settingsBtn.contains(e.target) && !settingsDiv.contains(e.target)) {
     settingsDiv.classList.add('hidden');
@@ -109,12 +130,12 @@ profileBtn.onclick = async () => {
       modalTitle.textContent = 'Your Profile';
       contactForm.innerHTML = `
         <table class="w-full">
-          <tr><th class="text-left text-textSecondary w-1/3">First Name</th><td>${user.firstName}</td></tr>
-          <tr><th class="text-left text-textSecondary">Last Name</th><td>${user.lastName || ''}</td></tr>
-          <tr><th class="text-left text-textSecondary">Username</th><td>${user.userName}</td></tr>
-          <tr><th class="text-left text-textSecondary">Email</th><td>${user.email || ''}</td></tr>
-          <tr><th class="text-left text-textSecondary">Phone</th><td>${user.phoneNumber || ''}</td></tr>
-          <tr><th class="text-left text-textSecondary">Role</th><td>${user.role || ''}</td></tr>
+          <tr><th class="text-left text-textSecondary w-1/3">First Name</th><td>${sanitizeInput(user.firstName)}</td></tr>
+          <tr><th class="text-left text-textSecondary">Last Name</th><td>${sanitizeInput(user.lastName || '')}</td></tr>
+          <tr><th class="text-left text-textSecondary">Username</th><td>${sanitizeInput(user.userName)}</td></tr>
+          <tr><th class="text-left text-textSecondary">Email</th><td>${sanitizeInput(user.email || '')}</td></tr>
+          <tr><th class="text-left text-textSecondary">Phone</th><td>${sanitizeInput(user.phoneNumber || '')}</td></tr>
+          <tr><th class="text-left text-textSecondary">Role</th><td>${sanitizeInput(user.role || '')}</td></tr>
         </table>
         <button type="button" id="contact-cancel" class="btn btn-secondary w-full mt-4">Close</button>
       `;
@@ -147,13 +168,18 @@ addContactBtn.onclick = () => {
 // Admin panel
 adminPanelBtn.onclick = async () => {
   settingsDiv.classList.add('hidden');
-  showAdminPanel();
-  await Promise.all([fetchUsers(), fetchRoles()]);
+  showAdminPanel('users');
+  await fetchUsersByRole('User');
+  await fetchRoles();
+  if (currentUser && currentUser.role === 'SuperAdmin') {
+    addRoleContainer.classList.remove('hidden');
+  }
 };
 
 // Back to contacts
 backToContacts.onclick = () => {
   adminSection.classList.add('hidden');
+  addRoleContainer.classList.add('hidden');
   showContacts();
 };
 
@@ -162,12 +188,12 @@ exportBtn.onclick = () => {
   const csv = [
     ['First Name', 'Last Name', 'Full Name', 'Email', 'Phone Number', 'Address'],
     ...contacts.map(c => [
-      `"${c.firstName}"`,
-      `"${c.lastName || ''}"`,
-      `"${c.fullName}"`,
-      `"${c.email || ''}"`,
-      `"${c.phoneNumber || ''}"`,
-      `"${c.address || ''}"`
+      `"${sanitizeInput(c.firstName)}"`,
+      `"${sanitizeInput(c.lastName || '')}"`,
+      `"${sanitizeInput(c.fullName)}"`,
+      `"${sanitizeInput(c.email || '')}"`,
+      `"${sanitizeInput(c.phoneNumber || '')}"`,
+      `"${sanitizeInput(c.address || '')}"`
     ])
   ].map(row => row.join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
@@ -207,6 +233,10 @@ roleModal.onclick = (e) => {
   if (e.target === roleModal) roleModal.classList.add('hidden');
 };
 
+// Section switching
+manageUsersBtn.onclick = () => showAdminPanel('users');
+manageRolesBtn.onclick = () => showAdminPanel('roles');
+
 // Keyboard navigation
 document.addEventListener('keydown', (e) => {
   if (contactModal.classList.contains('hidden') && roleModal.classList.contains('hidden') && settingsDiv.classList.contains('hidden')) {
@@ -242,19 +272,28 @@ searchContacts.oninput = debounce(() => {
   ));
 }, 300);
 
-// Search users
-searchUsers.oninput = debounce(async () => {
-  const query = searchUsers.value.toLowerCase();
-  if (query) {
-    await fetchUsers(query);
-  } else {
-    await fetchUsers();
+// Search users by role
+searchUsersBtn.onclick = async () => {
+  const query = sanitizeInput(searchUsers.value.trim());
+  if (!query) {
+    showToast('Please enter a role to search.', 'error');
+    searchUsers.classList.add('input-error');
+    return;
   }
-}, 300);
+  if (!VALID_ROLES.includes(query)) {
+    showToast(`Invalid role. Valid roles are: ${VALID_ROLES.join(', ')}`, 'error');
+    searchUsers.classList.add('input-error');
+    return;
+  }
+  searchUsers.classList.remove('input-error');
+  await fetchUsersByRole(query);
+};
 
 // Add role
 addRoleBtn.onclick = () => {
+  if (currentUser && currentUser.role !== 'SuperAdmin') return;
   roleForm.reset();
+  document.getElementById('role-id').value = '0';
   roleSubmit.textContent = 'Add Role';
   roleModalTitle.textContent = 'Add Role';
   roleModal.classList.remove('hidden');
@@ -264,9 +303,9 @@ addRoleBtn.onclick = () => {
 signupForm.onsubmit = async (e) => {
   e.preventDefault();
   const payload = {
-    firstName: document.getElementById('firstName').value,
-    lastName: document.getElementById('lastName').value,
-    userName: document.getElementById('userName').value,
+    firstName: sanitizeInput(document.getElementById('firstName').value),
+    lastName: sanitizeInput(document.getElementById('lastName').value),
+    userName: sanitizeInput(document.getElementById('userName').value),
     email: document.getElementById('email').value,
     password: document.getElementById('password').value,
     phoneNumber: document.getElementById('phoneNumber').value,
@@ -274,7 +313,7 @@ signupForm.onsubmit = async (e) => {
 
   showSpinner();
   try {
-    const res = await fetch(`${AUTH_API_URL}/sighUp`, {
+    const res = await fetch(`${AUTH_API_URL}/signUp`, {
       method: 'POST',
       headers: { 'Accept': '*/*', 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -286,11 +325,9 @@ signupForm.onsubmit = async (e) => {
       signupForm.reset();
     } else {
       const data = await res.json().catch(() => ({}));
-      console.error('Sign-up error:', res.status, data.error);
       showToast(data.error || `Sign-up failed (Status: ${res.status})`, 'error');
     }
   } catch (err) {
-    console.error('Sign-up failed:', err.message);
     showToast('Cannot connect to server.', 'error');
   } finally {
     hideSpinner();
@@ -301,7 +338,7 @@ signupForm.onsubmit = async (e) => {
 signinForm.onsubmit = async (e) => {
   e.preventDefault();
   const payload = {
-    userName: document.getElementById('signin-userName').value,
+    userName: sanitizeInput(document.getElementById('signin-userName').value),
     password: document.getElementById('signin-password').value,
   };
 
@@ -320,19 +357,17 @@ signinForm.onsubmit = async (e) => {
       localStorage.setItem('expires', Date.now() + data.expires * 1000);
       await fetchCurrentUser();
       showToast('Sign-in successful!', 'success');
-      contacts = []; // Clear previous contacts
+      contacts = [];
       showContacts();
       await fetchContacts();
-      if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'super admin')) {
+      if (currentUser && (currentUser.role === 'Admin' || currentUser.role === 'SuperAdmin')) {
         adminPanelBtn.classList.remove('hidden');
       }
     } else {
       const data = await res.json().catch(() => ({}));
-      console.error('Sign-in error:', res.status, data.error);
       showToast(data.error || `Sign-in failed (Status: ${res.status})`, 'error');
     }
   } catch (err) {
-    console.error('Sign-in failed:', err.message);
     showToast('Cannot connect to server.', 'error');
   } finally {
     hideSpinner();
@@ -345,11 +380,11 @@ contactForm.onsubmit = async (e) => {
   const contactId = parseInt(document.getElementById('contactId').value);
   const payload = {
     contactId,
-    firstName: document.getElementById('contact-firstName').value,
-    lastName: document.getElementById('contact-lastName').value,
+    firstName: sanitizeInput(document.getElementById('contact-firstName').value),
+    lastName: sanitizeInput(document.getElementById('contact-lastName').value),
     email: document.getElementById('contact-email').value,
     phoneNumber: document.getElementById('contact-phoneNumber').value,
-    address: document.getElementById('contact-address').value,
+    address: sanitizeInput(document.getElementById('contact-address').value),
   };
 
   const isUpdate = contactId > 0;
@@ -371,41 +406,51 @@ contactForm.onsubmit = async (e) => {
       fetchContacts();
     } else {
       const data = await res.json().catch(() => ({}));
-      console.error('Contact error:', res.status, data.error);
       showToast(data.error || `Failed to ${isUpdate ? 'update' : 'add'} contact`, 'error');
     }
   } catch (err) {
-    console.error('Contact failed:', err.message);
     showToast('Cannot connect to server.', 'error');
   } finally {
     hideSpinner();
   }
 };
 
-// Create role
+// Create/Update role
 roleForm.onsubmit = async (e) => {
   e.preventDefault();
+  if (currentUser && currentUser.role !== 'SuperAdmin') {
+    showToast('Only SuperAdmins can create or edit roles.', 'error');
+    return;
+  }
+  const roleId = parseInt(document.getElementById('role-id').value);
   const payload = {
-    userRoleName: document.getElementById('role-name').value,
-    description: document.getElementById('role-description').value,
+    userRoleId: roleId,
+    userRoleName: sanitizeInput(document.getElementById('role-name').value),
+    description: sanitizeInput(document.getElementById('role-description').value),
   };
 
+  const isUpdate = roleId > 0;
   showSpinner();
   try {
-    const res = await makeAuthenticatedRequest(`${ROLE_API_URL}/post`, 'POST', payload);
+    const res = await makeAuthenticatedRequest(
+      `${ROLE_API_URL}/${isUpdate ? 'update' : 'post'}`,
+      isUpdate ? 'PUT' : 'POST',
+      payload
+    );
     if (!res) return;
     if (res.ok) {
-      showToast('Role added!', 'success');
+      showToast(`Role ${isUpdate ? 'updated' : 'added'}!`, 'success');
       roleForm.reset();
+      document.getElementById('role-id').value = '0';
+      roleSubmit.textContent = 'Add Role';
+      roleModalTitle.textContent = 'Add Role';
       roleModal.classList.add('hidden');
       fetchRoles();
     } else {
       const data = await res.json().catch(() => ({}));
-      console.error('Role error:', res.status, data.error);
-      showToast(data.error || 'Failed to add role', 'error');
+      showToast(data.error || `Failed to ${isUpdate ? 'update' : 'add'} role`, 'error');
     }
   } catch (err) {
-    console.error('Role failed:', err.message);
     showToast('Cannot connect to server.', 'error');
   } finally {
     hideSpinner();
@@ -424,35 +469,41 @@ async function fetchContacts() {
       renderContacts(contacts);
     } else {
       const data = await res.json().catch(() => ({}));
-      console.error('Fetch error:', res.status, data.error);
-      showToast(data.error || `Failed to fetch contacts`, 'error');
+      showToast(data.error || 'Failed to fetch contacts', 'error');
     }
   } catch (err) {
-    console.error('Fetch failed:', err.message);
     showToast('Cannot connect to server.', 'error');
   } finally {
     hideSpinner();
   }
 }
 
-// Fetch users
-async function fetchUsers(role = '') {
+// Fetch users by role
+async function fetchUsersByRole(role) {
   showSpinner();
-  usersList.innerHTML = Array(3).fill().map(() => document.querySelector('#admin-section .skeleton').innerHTML).join('');
+  usersList.innerHTML = Array(3).fill().map(() => document.querySelector('#manage-users-section .skeleton').innerHTML).join('');
   try {
-    const res = await makeAuthenticatedRequest(`${ADMIN_API_URL}/getUsersByRole?role=${encodeURIComponent(role)}`);
+    const url = `${ADMIN_API_URL}/getUsersByRole?role=${encodeURIComponent(role)}`;
+    const res = await makeAuthenticatedRequest(url);
     if (!res) return;
     if (res.ok) {
       users = await res.json();
       renderUsers(users);
+      usersEmptyState.classList.toggle('hidden', users.length > 0);
     } else {
       const data = await res.json().catch(() => ({}));
-      console.error('Fetch users error:', res.status, data.error);
-      showToast(data.error || 'Failed to fetch users', 'error');
+      let errorMsg = data.error || `Failed to fetch users for role "${role}"`;
+      if (res.status === 400 || res.status === 404) {
+        errorMsg = `Invalid role "${role}". Valid roles are: ${VALID_ROLES.join(', ')}`;
+      }
+      showToast(errorMsg, 'error');
+      usersList.innerHTML = '';
+      usersEmptyState.classList.remove('hidden');
     }
   } catch (err) {
-    console.error('Fetch users failed:', err.message);
     showToast('Cannot connect to server.', 'error');
+    usersList.innerHTML = '';
+    usersEmptyState.classList.remove('hidden');
   } finally {
     hideSpinner();
   }
@@ -461,7 +512,7 @@ async function fetchUsers(role = '') {
 // Fetch roles
 async function fetchRoles() {
   showSpinner();
-  rolesList.innerHTML = Array(3).fill().map(() => document.querySelector('#admin-section .skeleton').innerHTML).join('');
+  rolesList.innerHTML = Array(3).fill().map(() => document.querySelector('#manage-roles-section .skeleton').innerHTML).join('');
   try {
     const res = await makeAuthenticatedRequest(`${ROLE_API_URL}/getAll`);
     if (!res) return;
@@ -470,11 +521,9 @@ async function fetchRoles() {
       renderRoles(roles);
     } else {
       const data = await res.json().catch(() => ({}));
-      console.error('Fetch roles error:', res.status, data.error);
-      showToast(data.error || 'Failed to fetch roles', 'error');
+      showToast(data.error || `Failed to fetch roles (Status: ${res.status})`, 'error');
     }
   } catch (err) {
-    console.error('Fetch roles failed:', err.message);
     showToast('Cannot connect to server.', 'error');
   } finally {
     hideSpinner();
@@ -503,8 +552,8 @@ function renderContacts(contactList) {
       <div class="contact-header" data-id="${c.contactId}">
         <div class="avatar">${initials}</div>
         <div class="flex-1">
-          <div class="font-medium text-textPrimary">${c.fullName}</div>
-          <div class="text-sm text-textSecondary">${c.phoneNumber || ''}</div>
+          <div class="font-medium text-textPrimary">${sanitizeInput(c.fullName)}</div>
+          <div class="text-sm text-textSecondary">${sanitizeInput(c.phoneNumber || '')}</div>
         </div>
         <button class="favorite-btn" data-id="${c.contactId}">
           <i class="fas fa-star ${favorites.has(c.contactId) ? 'text-yellow-400' : 'text-gray-400'}"></i>
@@ -515,12 +564,12 @@ function renderContacts(contactList) {
       </div>
       <div class="contact-details hidden">
         <table class="w-full">
-          <tr><th class="text-left text-textSecondary w-1/3">First Name</th><td>${c.firstName}</td></tr>
-          <tr><th class="text-left text-textSecondary">Last Name</th><td>${c.lastName || ''}</td></tr>
-          <tr><th class="text-left text-textSecondary">Full Name</th><td>${c.fullName}</td></tr>
-          <tr><th class="text-left text-textSecondary">Email</th><td>${c.email || ''}</td></tr>
-          <tr><th class="text-left text-textSecondary">Phone</th><td>${c.phoneNumber || ''}</td></tr>
-          <tr><th class="text-left text-textSecondary">Address</th><td>${c.address || ''}</td></tr>
+          <tr><th class="text-left text-textSecondary w-1/3">First Name</th><td>${sanitizeInput(c.firstName)}</td></tr>
+          <tr><th class="text-left text-textSecondary">Last Name</th><td>${sanitizeInput(c.lastName || '')}</td></tr>
+          <tr><th class="text-left text-textSecondary">Full Name</th><td>${sanitizeInput(c.fullName)}</td></tr>
+          <tr><th class="text-left text-textSecondary">Email</th><td>${sanitizeInput(c.email || '')}</td></tr>
+          <tr><th class="text-left text-textSecondary">Phone</th><td>${sanitizeInput(c.phoneNumber || '')}</td></tr>
+          <tr><th class="text-left text-textSecondary">Address</th><td>${sanitizeInput(c.address || '')}</td></tr>
         </table>
         <div class="mt-4 flex space-x-2 justify-end">
           <button class="edit-btn btn btn-edit" data-id="${c.contactId}"><i class="fas fa-edit"></i></button>
@@ -578,12 +627,13 @@ function renderUsers(userList) {
     card.className = 'user-card contact-card';
     card.tabIndex = 0;
     const initials = (u.firstName[0] + (u.lastName ? u.lastName[0] : '')).toUpperCase();
+    const isSuperAdmin = currentUser && currentUser.role === 'SuperAdmin';
     card.innerHTML = `
       <div class="user-header" data-id="${u.userId}">
         <div class="avatar">${initials}</div>
         <div class="flex-1">
-          <div class="font-medium text-textPrimary">${u.firstName} ${u.lastName || ''}</div>
-          <div class="text-sm text-textSecondary">${u.userName}</div>
+          <div class="font-medium text-textPrimary">${sanitizeInput(u.firstName)} ${sanitizeInput(u.lastName || '')}</div>
+          <div class="text-sm text-textSecondary">${sanitizeInput(u.userName)}</div>
         </div>
         <svg class="w-5 h-5 text-textSecondary transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -591,18 +641,22 @@ function renderUsers(userList) {
       </div>
       <div class="user-details contact-details hidden">
         <table class="w-full">
-          <tr><th class="text-left text-textSecondary w-1/3">First Name</th><td>${u.firstName}</td></tr>
-          <tr><th class="text-left text-textSecondary">Last Name</th><td>${u.lastName || ''}</td></tr>
-          <tr><th class="text-left text-textSecondary">Username</th><td>${u.userName}</td></tr>
-          <tr><th class="text-left text-textSecondary">Email</th><td>${u.email || ''}</td></tr>
-          <tr><th class="text-left text-textSecondary">Phone</th><td>${u.phoneNumber || ''}</td></tr>
-          <tr><th class="text-left text-textSecondary">Role</th><td>${u.role || ''}</td></tr>
+          <tr><th class="text-left text-textSecondary w-1/3">First Name</th><td>${sanitizeInput(u.firstName)}</td></tr>
+          <tr><th class="text-left text-textSecondary">Last Name</th><td>${sanitizeInput(u.lastName || '')}</td></tr>
+          <tr><th class="text-left text-textSecondary">Username</th><td>${sanitizeInput(u.userName)}</td></tr>
+          <tr><th class="text-left text-textSecondary">Email</th><td>${sanitizeInput(u.email || '')}</td></tr>
+          <tr><th class="text-left text-textSecondary">Phone</th><td>${sanitizeInput(u.phoneNumber || '')}</td></tr>
+          <tr><th class="text-left text-textSecondary">Role</th><td>${sanitizeInput(u.role || '')}</td></tr>
         </table>
         <div class="mt-4 flex space-x-2 justify-end">
+          ${isSuperAdmin ? `
           <select class="change-role w-1/2 p-2 border border-border rounded-lg bg-inputBg text-textPrimary focus:outline-none focus:ring-2 focus:ring-accent" data-id="${u.userId}">
             <option value="">Change Role</option>
-            ${roles.map(r => `<option value="${r.userRoleId}">${r.userRoleName}</option>`).join('')}
+            ${roles.map(r => `<option value="${r.userRoleId}" ${r.userRoleName === u.role ? 'selected' : ''}>${sanitizeInput(r.userRoleName)}</option>`).join('')}
           </select>
+          ` : `
+          <span class="text-textSecondary w-1/2 p-2">Role: ${sanitizeInput(u.role || 'None')}</span>
+          `}
           <button class="delete-user-btn btn btn-delete" data-id="${u.userId}"><i class="fas fa-trash"></i></button>
         </div>
       </div>
@@ -622,13 +676,25 @@ function renderUsers(userList) {
       arrow.classList.toggle('rotate-180');
     };
 
-    card.querySelector('.change-role').onchange = async (e) => {
-      const userId = parseInt(e.target.dataset.id);
-      const userRoleId = parseInt(e.target.value);
-      if (userRoleId) {
-        await changeUserRole(userId, userRoleId);
+    if (isSuperAdmin) {
+      const select = card.querySelector('.change-role');
+      if (select) {
+        select.onchange = async (e) => {
+          const userId = parseInt(e.target.dataset.id);
+          const userRoleId = parseInt(e.target.value);
+          if (userRoleId) {
+            await changeUserRole(userId, userRoleId);
+          }
+        };
       }
-    };
+    } else {
+      const roleSpan = card.querySelector('.user-details span');
+      if (roleSpan) {
+        roleSpan.onclick = () => {
+          showToast('Only SuperAdmins can change user roles.', 'error');
+        };
+      }
+    }
 
     card.querySelector('.delete-user-btn').onclick = (e) => {
       e.stopPropagation();
@@ -637,7 +703,7 @@ function renderUsers(userList) {
   });
 }
 
-// Render roles
+// Render roles with role-specific actions
 function renderRoles(roleList) {
   rolesList.innerHTML = '';
   if (roleList.length === 0) {
@@ -649,25 +715,85 @@ function renderRoles(roleList) {
     const card = document.createElement('div');
     card.className = 'role-card contact-card';
     card.tabIndex = 0;
+    const isSuperAdminRole = r.userRoleName === 'SuperAdmin';
+    const isAdminRole = r.userRoleName === 'Admin';
+    let actionsHtml = '';
+    if (currentUser && currentUser.role === 'SuperAdmin') {
+      actionsHtml += `<button class="edit-role-btn btn btn-edit" data-id="${r.userRoleId}"><i class="fas fa-edit"></i></button>`;
+      if (!isSuperAdminRole) {
+        actionsHtml += `<button class="delete-role-btn btn btn-delete" data-id="${r.userRoleId}"><i class="fas fa-trash"></i></button>`;
+      }
+    }
+    if (isSuperAdminRole) {
+      actionsHtml += `<button class="view-permissions-btn btn btn-secondary" data-id="${r.userRoleId}">View Permissions</button>`;
+    } else if (isAdminRole) {
+      actionsHtml += `<button class="assign-permissions-btn btn btn-secondary" data-id="${r.userRoleId}">Assign Permissions</button>`;
+    }
     card.innerHTML = `
       <div class="role-header" data-id="${r.userRoleId}">
         <div class="flex-1">
-          <div class="font-medium text-textPrimary">${r.userRoleName}</div>
-          <div class="text-sm text-textSecondary">${r.description || ''}</div>
+          <div class="font-medium text-textPrimary">${sanitizeInput(r.userRoleName)}</div>
+          <div class="text-sm text-textSecondary">${sanitizeInput(r.description || '')}</div>
         </div>
-        ${currentUser && currentUser.role === 'super admin' ? `
-        <button class="delete-role-btn btn btn-delete" data-id="${r.userRoleId}">
-          <i class="fas fa-trash"></i>
-        </button>
-        ` : ''}
+        <svg class="w-5 h-5 text-textSecondary transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+      </div>
+      <div class="role-details contact-details hidden">
+        <table class="w-full">
+          <tr><th class="text-left text-textSecondary w-1/3">Role Name</th><td>${sanitizeInput(r.userRoleName)}</td></tr>
+          <tr><th class="text-left text-textSecondary">Description</th><td>${sanitizeInput(r.description || '')}</td></tr>
+        </table>
+        <div class="mt-4 flex space-x-2 justify-end">
+          ${actionsHtml}
+        </div>
       </div>
     `;
     rolesList.appendChild(card);
 
-    if (currentUser && currentUser.role === 'super admin') {
-      card.querySelector('.delete-role-btn').onclick = (e) => {
+    card.querySelector('.role-header').onclick = () => {
+      document.querySelectorAll('.contact-details, .user-details, .role-details').forEach(d => {
+        if (d !== card.querySelector('.role-details')) d.classList.add('hidden');
+      });
+      document.querySelectorAll('.contact-header svg, .user-header svg, .role-header svg').forEach(s => {
+        if (s !== card.querySelector('svg')) s.classList.remove('rotate-180');
+      });
+      const details = card.querySelector('.role-details');
+      const arrow = card.querySelector('svg');
+      details.classList.toggle('hidden');
+      arrow.classList.toggle('rotate-180');
+    };
+
+    if (currentUser && currentUser.role === 'SuperAdmin') {
+      const editBtn = card.querySelector('.edit-role-btn');
+      if (editBtn) {
+        editBtn.onclick = (e) => {
+          e.stopPropagation();
+          editRole(r.userRoleId, r);
+        };
+      }
+      const deleteBtn = card.querySelector('.delete-role-btn');
+      if (deleteBtn) {
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          deleteRole(r.userRoleId, r);
+        };
+      }
+    }
+
+    const viewPermissionsBtn = card.querySelector('.view-permissions-btn');
+    if (viewPermissionsBtn) {
+      viewPermissionsBtn.onclick = (e) => {
         e.stopPropagation();
-        deleteRole(r.userRoleId, r);
+        viewPermissions(r.userRoleId, r.userRoleName);
+      };
+    }
+
+    const assignPermissionsBtn = card.querySelector('.assign-permissions-btn');
+    if (assignPermissionsBtn) {
+      assignPermissionsBtn.onclick = (e) => {
+        e.stopPropagation();
+        assignPermissions(r.userRoleId, r.userRoleName);
       };
     }
   });
@@ -676,11 +802,11 @@ function renderRoles(roleList) {
 // Edit contact
 function editContact(id, contact) {
   document.getElementById('contactId').value = contact.contactId;
-  document.getElementById('contact-firstName').value = contact.firstName;
-  document.getElementById('contact-lastName').value = contact.lastName || '';
-  document.getElementById('contact-email').value = contact.email || '';
-  document.getElementById('contact-phoneNumber').value = contact.phoneNumber || '';
-  document.getElementById('contact-address').value = contact.address || '';
+  document.getElementById('contact-firstName').value = sanitizeInput(contact.firstName);
+  document.getElementById('contact-lastName').value = sanitizeInput(contact.lastName || '');
+  document.getElementById('contact-email').value = sanitizeInput(contact.email || '');
+  document.getElementById('contact-phoneNumber').value = sanitizeInput(contact.phoneNumber || '');
+  document.getElementById('contact-address').value = sanitizeInput(contact.address || '');
   contactSubmit.textContent = 'Update Contact';
   modalTitle.textContent = 'Edit Contact';
   contactModal.classList.remove('hidden');
@@ -702,7 +828,6 @@ async function deleteContact(id, contact) {
       showToast(data.error || 'Failed to delete contact', 'error');
     }
   } catch (err) {
-    console.error('Delete failed:', err.message);
     showToast('Cannot connect to server.', 'error');
   } finally {
     hideSpinner();
@@ -742,13 +867,12 @@ async function deleteUser(id, user) {
     if (!res) return;
     if (res.ok) {
       showToast(`User deleted. <button onclick="undoDeleteUser()">Undo</button>`, 'success', false);
-      fetchUsers(searchUsers.value);
+      fetchUsersByRole(searchUsers.value);
     } else {
       const data = await res.json().catch(() => ({}));
       showToast(data.error || 'Failed to delete user', 'error');
     }
   } catch (err) {
-    console.error('Delete user failed:', err.message);
     showToast('Cannot connect to server.', 'error');
   } finally {
     hideSpinner();
@@ -769,11 +893,11 @@ async function undoDeleteUser() {
       phoneNumber: user.phoneNumber || '',
       role: user.role || ''
     };
-    const res = await makeAuthenticatedRequest(`${AUTH_API_URL}/sighUp`, 'POST', payload);
+    const res = await makeAuthenticatedRequest(`${AUTH_API_URL}/signUp`, 'POST', payload);
     if (!res) return;
     if (res.ok) {
       showToast('User restored!', 'success');
-      fetchUsers(searchUsers.value);
+      fetchUsersByRole(searchUsers.value);
     } else {
       const data = await res.json().catch(() => ({}));
       showToast(data.error || 'Failed to restore user', 'error');
@@ -788,27 +912,48 @@ async function undoDeleteUser() {
 
 // Change user role
 async function changeUserRole(userId, userRoleId) {
+  if (!currentUser || currentUser.role !== 'SuperAdmin') {
+    showToast('Only SuperAdmins can change user roles.', 'error');
+    return;
+  }
   showSpinner();
   try {
     const res = await makeAuthenticatedRequest(`${ADMIN_API_URL}/changeRole?userId=${userId}&userRoleId=${userRoleId}`, 'PATCH');
     if (!res) return;
     if (res.ok) {
       showToast('User role updated!', 'success');
-      fetchUsers(searchUsers.value);
+      fetchUsersByRole(searchUsers.value || 'User');
     } else {
       const data = await res.json().catch(() => ({}));
       showToast(data.error || 'Failed to change user role', 'error');
     }
   } catch (err) {
-    console.error('Change role failed:', err.message);
     showToast('Cannot connect to server.', 'error');
   } finally {
     hideSpinner();
   }
 }
 
+// Edit role
+function editRole(id, role) {
+  if (currentUser && currentUser.role !== 'SuperAdmin') {
+    showToast('Only SuperAdmins can edit roles.', 'error');
+    return;
+  }
+  document.getElementById('role-id').value = id;
+  document.getElementById('role-name').value = sanitizeInput(role.userRoleName);
+  document.getElementById('role-description').value = sanitizeInput(role.description || '');
+  roleSubmit.textContent = 'Update Role';
+  roleModalTitle.textContent = 'Edit Role';
+  roleModal.classList.remove('hidden');
+}
+
 // Delete role
 async function deleteRole(id, role) {
+  if (currentUser && currentUser.role !== 'SuperAdmin') {
+    showToast('Only SuperAdmins can delete roles.', 'error');
+    return;
+  }
   if (!confirm('Are you sure you want to delete this role?')) return;
   showSpinner();
   deletedRole = { id, role };
@@ -823,7 +968,6 @@ async function deleteRole(id, role) {
       showToast(data.error || 'Failed to delete role', 'error');
     }
   } catch (err) {
-    console.error('Delete role failed:', err.message);
     showToast('Cannot connect to server.', 'error');
   } finally {
     hideSpinner();
@@ -857,22 +1001,52 @@ async function undoDeleteRole() {
   }
 }
 
+// View permissions (placeholder)
+function viewPermissions(roleId, roleName) {
+  showToast(`Viewing permissions for ${sanitizeInput(roleName)} (ID: ${roleId})`, 'info');
+  // Placeholder: Implement actual permissions fetching logic when API is available
+}
+
+// Assign permissions (placeholder)
+function assignPermissions(roleId, roleName) {
+  showToast(`Assigning permissions for ${sanitizeInput(roleName)} (ID: ${roleId})`, 'info');
+  // Placeholder: Implement actual permissions assignment logic when API is available
+}
+
+// Show admin panel with section switching
+function showAdminPanel(section = 'users') {
+  authSection.classList.add('hidden');
+  contactsSection.classList.add('hidden');
+  adminSection.classList.remove('hidden');
+  if (section === 'users') {
+    manageUsersSection.classList.remove('hidden');
+    manageRolesSection.classList.add('hidden');
+    manageUsersBtn.classList.add('btn-active');
+    manageRolesBtn.classList.remove('btn-active');
+    fetchUsersByRole('User');
+  } else {
+    manageUsersSection.classList.add('hidden');
+    manageRolesSection.classList.remove('hidden');
+    manageUsersBtn.classList.remove('btn-active');
+    manageRolesBtn.classList.add('btn-active');
+    fetchRoles();
+  }
+}
+
 // Logout
 logoutBtn.onclick = async () => {
   showSpinner();
   try {
     const refreshToken = localStorage.getItem('refreshToken');
-    const res = await makeAuthenticatedRequest(`${AUTH_API_URL}/LogOut?token=${encodeURIComponent(refreshToken)}`, 'DELETE');
+    const res = await makeAuthenticatedRequest(`${AUTH_API_URL}/logout?token=${encodeURIComponent(refreshToken)}`, 'DELETE');
     if (!res) return;
     if (res.ok) {
       showToast('Logged out successfully!', 'success');
     } else {
       const data = await res.json().catch(() => ({}));
-      console.error('Logout error:', res.status, data.error);
       showToast(data.error || 'Logout failed.', 'error');
     }
   } catch (err) {
-    console.error('Logout failed:', err.message);
     showToast('Cannot connect to server.', 'error');
   } finally {
     localStorage.clear();
@@ -881,6 +1055,7 @@ logoutBtn.onclick = async () => {
     roles = [];
     currentUser = null;
     adminPanelBtn.classList.add('hidden');
+    addRoleContainer.classList.add('hidden');
     showAuth();
     hideSpinner();
     settingsDiv.classList.add('hidden');
@@ -890,33 +1065,36 @@ logoutBtn.onclick = async () => {
 // Authenticated request
 async function makeAuthenticatedRequest(url, method = 'GET', body = null) {
   const accessToken = localStorage.getItem('accessToken');
+  const tokenType = localStorage.getItem('tokenType');
   const expires = parseInt(localStorage.getItem('expires'));
   const refreshToken = localStorage.getItem('refreshToken');
 
-  if (!accessToken || !refreshToken) {
+  if (!accessToken || !tokenType || !refreshToken) {
     showToast('Please sign in again.', 'error');
     showAuth();
     return null;
   }
 
   if (Date.now() > expires) {
-    if (!await refreshAccessToken()) {
+    const refreshed = await refreshAccessToken();
+    if (!refreshed) {
       showToast('Session expired. Please sign in again.', 'error');
       showAuth();
       return null;
     }
-  }
+  } // 👈 this was missing
 
   const headers = {
-    'Accept': '*/*',
+    'Accept': `${tokenType} ${accessToken}`,
     'Content-Type': 'application/json',
-    'Authorization': `${localStorage.getItem('tokenType')} ${localStorage.getItem('accessToken')}`,
+    'Authorization': 'Bearer ' + accessToken
   };
 
   try {
     let res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : null });
     if (res.status === 401) {
-      if (await refreshAccessToken()) {
+      const refreshed = await refreshAccessToken();
+      if (refreshed) {
         headers.Authorization = `${localStorage.getItem('tokenType')} ${localStorage.getItem('accessToken')}`;
         res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : null });
       } else {
@@ -927,11 +1105,11 @@ async function makeAuthenticatedRequest(url, method = 'GET', body = null) {
     }
     return res;
   } catch (err) {
-    console.error('Error:', err.message);
     showToast('Cannot connect to server.', 'error');
     return null;
   }
 }
+
 
 // Refresh token
 async function refreshAccessToken() {
@@ -955,13 +1133,11 @@ async function refreshAccessToken() {
       return true;
     } else {
       const data = await res.json().catch(() => ({}));
-      console.error('Refresh error:', res.status, data.error);
       showToast(data.error || 'Token refresh failed.', 'error');
       localStorage.clear();
       return false;
     }
   } catch (err) {
-    console.error('Refresh failed:', err.message);
     showToast('Cannot connect to server.', 'error');
     localStorage.clear();
     return false;
@@ -995,13 +1171,6 @@ function showContacts() {
   authSection.classList.add('hidden');
   adminSection.classList.add('hidden');
   contactsSection.classList.remove('hidden');
-}
-
-// Show admin panel
-function showAdminPanel() {
-  authSection.classList.add('hidden');
-  contactsSection.classList.add('hidden');
-  adminSection.classList.remove('hidden');
 }
 
 // Show/hide spinner
