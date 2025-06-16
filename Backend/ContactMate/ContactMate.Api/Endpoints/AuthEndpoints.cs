@@ -15,7 +15,7 @@ public static class AuthEndpoints
         userGroup.MapPost("/signIn", SignIn)
             .WithName("LogIn");
 
-        userGroup.MapPost("/sighUp", SignUp)
+        userGroup.MapPost("/signUp", SignUp)
             .WithName("SignUp");
 
         userGroup.MapPost("/refreshToken", RefreshToken)

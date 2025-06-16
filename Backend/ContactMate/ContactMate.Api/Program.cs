@@ -4,7 +4,7 @@ using ContactMate.Api.Middlewares;
 
 namespace ContactMate.Api
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
