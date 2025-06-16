@@ -2,6 +2,8 @@
 
 A secure and scalable contact management system featuring full CRUD operations, user authentication with JWT, and an admin panel. Built with modern best practices and clean architecture.
 
+> **Project by Saidabror Siddiqjonov**
+
 ---
 
 ## Features
@@ -32,4 +34,4 @@ A secure and scalable contact management system featuring full CRUD operations, 
 
 1. Clone the repository:  
    ```bash
-   git clone https://github.com/your-username/contactmate.git
+   git clone https://github.com/Siddiqjonov/ContactMate.git
